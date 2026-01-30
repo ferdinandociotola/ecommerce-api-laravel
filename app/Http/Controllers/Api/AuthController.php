@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\CartItem;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -22,10 +24,17 @@ class AuthController extends Controller
 	$user=User::create([
 	'name'=>$request->name,
 	'email'=>$request->email,
-	'password'=>Hash::make($request->password)
+	'password' => bcrypt($request->password),
+    'role' => 'user'
 	]);
 
 	$token =$user->createToken('auth-token')->plainTextToken;
+
+	// Login automatico dopo registrazione
+    Auth::login($user);
+
+    // MERGE CART: sessione → database
+    $this->mergeCart($request);
 
 	return response()->json([
 			'success'=> true,
@@ -43,16 +52,20 @@ class AuthController extends Controller
 			'password'=> 'required'
 			]);
 		
-		$user=User::where('email', $request->email)->first();
+		//$user=User::where('email', $request->email)->first();
 
-		if (!$user || !Hash::check($request->password, $user->password)) {
+		//if (!$user || !Hash::check($request->password, $user->password)) {
+		if (!Auth::attempt($request->only('email', 'password'))){
 		return response()->json([
-			'success'=> false,
-			'message'=> 'Invalid credentials'
+			'message'=> 'Credenziali non valide'
 			], 401);
 			}
 
+			$user=Auth::user();
 	    	$token = $user->createToken('auth-token')->plainTextToken;
+
+			//MergeCart: sessione->database
+			$this->mergeCart($request);
 
     		return response()->json([
         		'success' => true,
@@ -73,5 +86,40 @@ class AuthController extends Controller
 			'message'=> 'Logged out'
 			]);
 	}
+
+	private function mergeCart(Request $request)
+	{
+
+		//Leggi carrello sessione
+		$sessionCart=session('cart', []);
+
+		if (empty($sessionCart)) {
+			return; //nessun prodotto
+		}
+	
+
+		$userId=Auth::id();
+
+		foreach($sessionCart as $productId => $data) {
+			//Cerca se prodotto è già nel db
+			$cartItem=CartItem::where('user_id', $userId)
+					->where('product_id', $productId)
+					->first();
+
+			if ($cartItem) {
+				//Prodotto esiste->somma quantità
+				CartItem::create([
+				'user_id' => $userId,
+				'product_id'=> $productId,
+				'quantity'=> $data['quantity']
+				]);
+			}
+
+		}
+		//Cancesso la sessione
+		session()->forget('cart');
+	}
+
+
 
 }
