@@ -37,5 +37,5 @@ Route::middleware('optional.auth')->group(function() {
 Route::middleware('auth:sanctum')->group(function(){
     Route::post('/checkout', [OrderController::class, 'checkout']);
     Route::get('/orders', [OrderController::class, 'index']);
-    Route::get('/orders/{$id}', [OrderController::class, 'show']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
 });
