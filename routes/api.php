@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\OrderController;
 
 //Public routes - no auth
 Route::get('/products', [ProductController::class, 'index']);
@@ -30,4 +31,11 @@ Route::middleware('optional.auth')->group(function() {
     Route::put('/cart/{id}', [CartController::class, 'update']);
     Route::delete('/cart/{id}', [CartController::class, 'destroy']);
     Route::delete('/cart', [CartController::class, 'clear']);
+});
+
+//Orders (vale solo per logged users)
+Route::middleware('auth:sanctum')->group(function(){
+    Route::post('/checkout', [OrderController::class, 'checkout']);
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{$id}', [OrderController::class, 'show']);
 });
