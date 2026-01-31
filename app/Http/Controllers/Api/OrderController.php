@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -10,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderConfirmationMail;
 
 
 class OrderController extends Controller
@@ -57,6 +60,11 @@ class OrderController extends Controller
                 CartItem::where('user_id', Auth::id())->delete();
 
                 DB::commit();
+
+                // Invia email conferma
+                Mail::to(Auth::user()->email)->send(
+                new OrderConfirmationMail($order->load('orderItems.product'))
+                );
 
                 //Ritorna order con items
                 return response()->json([
