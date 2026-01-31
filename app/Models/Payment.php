@@ -10,6 +10,7 @@ class Payment extends Model
 		'order_id',
 		'stripe_payment_id',
 		'amount',
+		'currency',
 		'status'
 		];
 

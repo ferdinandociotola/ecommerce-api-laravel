@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\PaymentController;
 
 //Public routes - no auth
 Route::get('/products', [ProductController::class, 'index']);
@@ -38,4 +39,9 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::post('/checkout', [OrderController::class, 'checkout']);
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
+
+    //Payments
+    Route::post('/payment/create-intent', [PaymentController::class, 'createPaymentIntent']);
+    Route::post('/payment/confirm', [PaymentController::class, 'confirmPayment']);
+    
 });
