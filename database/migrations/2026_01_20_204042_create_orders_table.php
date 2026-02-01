@@ -17,7 +17,7 @@ return new class extends Migration
 		$table->decimal('total', 10, 2);
 		$table->string('status')->default('pending'); // pending, processing, shipped, delivery, cancelled
 		$table->string('payment_status')->default('pending'); // pending, paid, failed
-		$table->text('shipping_address');
+		$table->text('shipping_address')->nullable();
 	        $table->timestamps();
         });
     }
